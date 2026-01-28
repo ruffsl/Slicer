@@ -56,9 +56,11 @@
         // Explicitly set SSH_AUTH_SOCK for devcontainer CLI
         // "SSH_AUTH_SOCK": "${localEnv:SSH_AUTH_SOCK}",
         // Disable MIT-SHM for X11 forwarding compatibility
-        "QT_X11_NO_MITSHM": "1",
+        // "QT_X11_NO_MITSHM": "1",
+        "QT_PLUGIN_PATH": "/usr/lib/x86_64-linux-gnu/qt6/plugins",
+        "QT_QPA_PLATFORM": "wayland-egl",
         // Explicitly set XAUTHORITY for X11 on NixOS
-        "XAUTHORITY": "${localEnv:XAUTHORITY}",
+        // "XAUTHORITY": "${localEnv:XAUTHORITY}",
         "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
         "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
     },
@@ -129,12 +131,12 @@
             "target": "/tmp/.X11-unix",
             "type": "bind"
         },
-        {
-            // Mount XAUTHORITY for X11 on NixOS
-            "source": "${localEnv:XAUTHORITY}",
-            "target": "${localEnv:XAUTHORITY}",
-            "type": "bind"
-        },
+        // {
+        //     // Mount XAUTHORITY for X11 on NixOS
+        //     "source": "${localEnv:XAUTHORITY}",
+        //     "target": "${localEnv:XAUTHORITY}",
+        //     "type": "bind"
+        // },
         {
             // Mount Wayland socket
             "source": "${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY}",
