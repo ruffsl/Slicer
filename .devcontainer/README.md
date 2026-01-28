@@ -156,3 +156,24 @@ docker buildx bake build
 ls ./result/build/Slicer-SuperBuild
 ```
  -->
+
+## Wayland
+
+The devcontainer is configured for Wayland-native display with NVIDIA GPU acceleration. The following environment variables are set in `devcontainer.json`:
+
+- `QT_QPA_PLATFORM=wayland-egl` - Forces Qt to use the Wayland EGL backend
+- `QT_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/qt6/plugins` - Points to system Qt6 plugins with Wayland support
+
+### Running Slicer
+
+The CTK AppLauncher's splash screen only supports X11/XCB, so use `--no-splash` when running with Wayland:
+
+```bash
+./Slicer-build/Slicer --no-splash
+```
+
+Alternatively, run `SlicerApp-real` directly to bypass the launcher entirely:
+
+```bash
+./Slicer-build/bin/SlicerApp-real
+```
