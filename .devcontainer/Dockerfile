@@ -82,7 +82,16 @@ RUN --mount=type=cache,sharing=locked,target=/var/cache/apt \
     libnss3 \
     libpulse-mainloop-glib0 \
     libxcb-xinerama0 \
-    qt6-gtk-platformtheme
+    qt6-gtk-platformtheme \
+    qt6-wayland
+
+# configure NVIDIA EGL vendor for container toolkit
+# The toolkit mounts libraries to /usr/local/nvidia but doesn't always create the vendor file
+RUN mkdir -p /usr/share/glvnd/egl_vendor.d && \
+  echo '{"file_format_version":"1.0.0","ICD":{"library_path":"libEGL_nvidia.so.0"}}' \
+    > /usr/share/glvnd/egl_vendor.d/10_nvidia.json && \
+  echo "/usr/local/nvidia/lib64" > /etc/ld.so.conf.d/nvidia.conf && \
+  ldconfig
 
 ################################################################################
 # MARK: tester - setup test dependencies for validation

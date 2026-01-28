@@ -59,6 +59,8 @@
         "QT_X11_NO_MITSHM": "1",
         // Explicitly set XAUTHORITY for X11 on NixOS
         "XAUTHORITY": "${localEnv:XAUTHORITY}",
+        "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
+        "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
     },
     "remoteUser": "ubuntu",
     "mounts": [
@@ -131,6 +133,12 @@
             // Mount XAUTHORITY for X11 on NixOS
             "source": "${localEnv:XAUTHORITY}",
             "target": "${localEnv:XAUTHORITY}",
+            "type": "bind"
+        },
+        {
+            // Mount Wayland socket
+            "source": "${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY}",
+            "target": "${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY}",
             "type": "bind"
         },
         {
