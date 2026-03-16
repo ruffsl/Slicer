@@ -39,7 +39,7 @@
           # Slicer uses a custom VTK fork (SplineDrivenImageSlicer module)
           # and nixpkgs has VTK 9.5.2 while Slicer wants 9.6.0.
           VTK = true;
-          ITK = false; # nixpkgs ITK lacks Slicer remote modules (MGHIO, IOScanco)
+          ITK = true;
           DCMTK = false; # Dual DCMTK copies (system + ITK-bundled) cause crash on exit
         };
 
@@ -106,10 +106,44 @@
         # ITK must be built against slicerVtk so that ITKVtkGlue.cmake
         # hardcodes the same VTK store path (with Qt6 + Python wrapping).
         # Otherwise ITK overrides VTK_DIR to a plain VTK without those.
+        #
+        # nixpkgs ITK already enables MGHIO, ITKReview, AdaptiveDenoising,
+        # GenericLabelInterpolator, SimpleITKFilters, and ITKIOMINC.
+        # We add the three remote modules Slicer still needs: IOScanco,
+        # MorphologicalContourInterpolation, and GrowCut.
+        itkIOScancoSrc = pkgs.fetchFromGitHub {
+          owner = "KitwareMedical";
+          repo = "ITKIOScanco";
+          rev = "10b80f69048e79ab3069e89635822a6851099278";
+          hash = "sha256-t96Vmn4IEQIp3susGZihpmE2sm88dAnrDVl+wSGs3DI=";
+        };
+        itkMorphContourInterpSrc = pkgs.fetchFromGitHub {
+          owner = "KitwareMedical";
+          repo = "ITKMorphologicalContourInterpolation";
+          rev = "821bf9b3ef8eaaab10391ed060dc9ca5e4d37b39";
+          hash = "sha256-kVixSXtHHCKmlcQdvakce34QWvh22oWiMMCOSfeDvgI=";
+        };
+        itkGrowCutSrc = pkgs.fetchFromGitHub {
+          owner = "InsightSoftwareConsortium";
+          repo = "ITKGrowCut";
+          rev = "cbf93ab65117abfbf5798745117e34f22ff04728";
+          hash = "sha256-qc5PU5YQUmsd3j4R/z6Pkq+DPTlgER1rLTd+tkqR3w0=";
+        };
         slicerItk = (pkgs.itk.override { vtk = slicerVtk; }).overrideAttrs (old: {
           buildInputs = (old.buildInputs or [ ]) ++ [
             pkgs.qt6.qtbase # Widgets, Gui, OpenGL, Sql, OpenGLWidgets
             pkgs.qt6.qtdeclarative # Quick, Qml
+          ];
+          postPatch = (old.postPatch or "") + ''
+            ln -sr ${itkIOScancoSrc} Modules/External/IOScanco
+            ln -sr ${itkMorphContourInterpSrc} Modules/External/MorphologicalContourInterpolation
+            ln -sr ${itkGrowCutSrc} Modules/External/GrowCut
+          '';
+          cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+            "-DModule_IOScanco=ON"
+            "-DModule_MorphologicalContourInterpolation=ON"
+            "-DModule_GrowCut=ON"
+            "-DKWSYS_USE_MD5=ON" # Required by SlicerExecutionModel
           ];
           dontWrapQtApps = true; # ITK is a library, not an app
         });
