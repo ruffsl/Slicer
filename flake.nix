@@ -107,10 +107,17 @@
         # hardcodes the same VTK store path (with Qt6 + Python wrapping).
         # Otherwise ITK overrides VTK_DIR to a plain VTK without those.
         #
-        # nixpkgs ITK already enables MGHIO, ITKReview, AdaptiveDenoising,
+        # nixpkgs ITK already enables ITKReview, AdaptiveDenoising,
         # GenericLabelInterpolator, SimpleITKFilters, and ITKIOMINC.
-        # We add the three remote modules Slicer still needs: IOScanco,
-        # MorphologicalContourInterpolation, and GrowCut.
+        # We add the remote modules Slicer still needs: MGHIO, IOScanco,
+        # MorphologicalContourInterpolation, and GrowCut. (nixpkgs has
+        # -DModule_MGHIO=ON but doesn't fetch its source, so it's a no-op.)
+        itkMGHIOSrc = pkgs.fetchFromGitHub {
+          owner = "InsightSoftwareConsortium";
+          repo = "itkMGHImageIO";
+          rev = "0adac35fa22945c7a5f3a63dd8d01454577c24d3";
+          hash = "sha256-iVq4oVg9dRxxCJ4BhcwB5wbSNxOJnEsRbI4rtsdKzvQ=";
+        };
         itkIOScancoSrc = pkgs.fetchFromGitHub {
           owner = "KitwareMedical";
           repo = "ITKIOScanco";
@@ -136,6 +143,7 @@
             pkgs.dcmtk # System DCMTK so ITK doesn't bundle its own copy
           ];
           postPatch = (old.postPatch or "") + ''
+            ln -sr ${itkMGHIOSrc} Modules/External/MGHIO
             ln -sr ${itkIOScancoSrc} Modules/External/IOScanco
             ln -sr ${itkMorphContourInterpSrc} Modules/External/MorphologicalContourInterpolation
             ln -sr ${itkGrowCutSrc} Modules/External/GrowCut
