@@ -40,7 +40,7 @@
           # and nixpkgs has VTK 9.5.2 while Slicer wants 9.6.0.
           VTK = true;
           ITK = true;
-          DCMTK = false; # Dual DCMTK copies (system + ITK-bundled) cause crash on exit
+          DCMTK = true;
         };
 
         # Helper: collect USE_SYSTEM cmake flags from the toggle map
@@ -133,6 +133,7 @@
           buildInputs = (old.buildInputs or [ ]) ++ [
             pkgs.qt6.qtbase # Widgets, Gui, OpenGL, Sql, OpenGLWidgets
             pkgs.qt6.qtdeclarative # Quick, Qml
+            pkgs.dcmtk # System DCMTK so ITK doesn't bundle its own copy
           ];
           postPatch = (old.postPatch or "") + ''
             ln -sr ${itkIOScancoSrc} Modules/External/IOScanco
@@ -144,6 +145,11 @@
             "-DModule_MorphologicalContourInterpolation=ON"
             "-DModule_GrowCut=ON"
             "-DKWSYS_USE_MD5=ON" # Required by SlicerExecutionModel
+            "-DITK_USE_SYSTEM_DCMTK=ON" # Avoid dual DCMTK (ITK-bundled + system)
+            "-DModule_ITKIODCMTK=ON"
+          ];
+          propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [
+            pkgs.dcmtk
           ];
           dontWrapQtApps = true; # ITK is a library, not an app
         });
