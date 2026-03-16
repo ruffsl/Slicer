@@ -109,6 +109,7 @@
           cmakeFlags = (old.cmakeFlags or [ ]) ++ [
             "-DBUILD_SHARED_LIBS=ON"
           ];
+          doCheck = false; # Tests fail with shared libs (RPATH not set before install)
         });
 
         # ITK must be built against slicerVtk so that ITKVtkGlue.cmake
