@@ -103,6 +103,14 @@
           python3Packages = pkgs.python312Packages;
         };
 
+        # nixpkgs DCMTK builds static-only by default. Slicer and ITK
+        # need shared libraries so DCMTK symbols are properly resolved.
+        slicerDcmtk = pkgs.dcmtk.overrideAttrs (old: {
+          cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+            "-DBUILD_SHARED_LIBS=ON"
+          ];
+        });
+
         # ITK must be built against slicerVtk so that ITKVtkGlue.cmake
         # hardcodes the same VTK store path (with Qt6 + Python wrapping).
         # Otherwise ITK overrides VTK_DIR to a plain VTK without those.
@@ -140,7 +148,7 @@
           buildInputs = (old.buildInputs or [ ]) ++ [
             pkgs.qt6.qtbase # Widgets, Gui, OpenGL, Sql, OpenGLWidgets
             pkgs.qt6.qtdeclarative # Quick, Qml
-            pkgs.dcmtk # System DCMTK so ITK doesn't bundle its own copy
+            slicerDcmtk # System DCMTK so ITK doesn't bundle its own copy
           ];
           postPatch = (old.postPatch or "") + ''
             ln -sr ${itkMGHIOSrc} Modules/External/MGHIO
@@ -157,7 +165,7 @@
             "-DModule_ITKIODCMTK=ON"
           ];
           propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [
-            pkgs.dcmtk
+            slicerDcmtk
           ];
           dontWrapQtApps = true; # ITK is a library, not an app
         });
@@ -207,7 +215,7 @@
         # Conditionally include system packages for higher-risk toggles
         ++ pkgs.lib.optionals useSystem.VTK [ slicerVtk ]
         ++ pkgs.lib.optionals useSystem.ITK [ slicerItk ]
-        ++ pkgs.lib.optionals useSystem.DCMTK [ pkgs.dcmtk ];
+        ++ pkgs.lib.optionals useSystem.DCMTK [ slicerDcmtk ];
 
         # ── Runtime dependencies ─────────────────────────────────────
         # Libraries needed at runtime by the built Slicer application.
