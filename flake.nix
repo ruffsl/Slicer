@@ -39,8 +39,8 @@
           # Slicer uses a custom VTK fork (SplineDrivenImageSlicer module)
           # and nixpkgs has VTK 9.5.2 while Slicer wants 9.6.0.
           VTK = true;
-          ITK = true;
-          DCMTK = true;
+          ITK = false;
+          DCMTK = false;
         };
 
         # Helper: collect USE_SYSTEM cmake flags from the toggle map
